@@ -1,0 +1,5 @@
+{
+  "name": "App Juan",
+  "description": "App de turnos para centro de recuperación con integración a Google Calendar.",
+  "requestFramePermissions": []
+}
