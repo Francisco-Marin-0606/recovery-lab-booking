@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 
-export type UserRole = "admin" | "cliente";
+export type UserRole = "admin";
 
 interface UserProfile {
   uid: string;
@@ -14,7 +14,6 @@ interface AuthContextType {
   profile: UserProfile | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
   isAdmin: boolean;
 }
@@ -33,10 +32,6 @@ const HARDCODED_USERS: Record<string, { password: string; profile: UserProfile }
     password: "admin123",
     profile: { uid: "admin-001", email: "admin@recoverylab.com", role: "admin", displayName: "Admin Recovery" },
   },
-  "cliente@recoverylab.com": {
-    password: "cliente123",
-    profile: { uid: "cliente-001", email: "cliente@recoverylab.com", role: "cliente", displayName: "Cliente Test" },
-  },
 };
 
 const SESSION_KEY = "recovery_lab_session";
@@ -44,7 +39,10 @@ const SESSION_KEY = "recovery_lab_session";
 function getSavedSession(): UserProfile | null {
   try {
     const raw = localStorage.getItem(SESSION_KEY);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as UserProfile;
+    if (parsed.role !== "admin") return null;
+    return parsed;
   } catch {
     return null;
   }
@@ -65,23 +63,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!entry || entry.password !== password) {
       throw { code: "auth/invalid-credential" };
     }
+    if (entry.profile.role !== "admin") {
+      throw { code: "auth/not-admin" };
+    }
     localStorage.setItem(SESSION_KEY, JSON.stringify(entry.profile));
     setProfile(entry.profile);
-  };
-
-  const register = async (email: string, password: string, name: string) => {
-    if (HARDCODED_USERS[email.toLowerCase()]) {
-      throw { code: "auth/email-already-in-use" };
-    }
-    const newProfile: UserProfile = {
-      uid: `cliente-${Date.now()}`,
-      email,
-      role: "cliente",
-      displayName: name,
-    };
-    HARDCODED_USERS[email.toLowerCase()] = { password, profile: newProfile };
-    localStorage.setItem(SESSION_KEY, JSON.stringify(newProfile));
-    setProfile(newProfile);
   };
 
   const logout = async () => {
@@ -93,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAdmin = profile?.role === "admin";
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, login, register, logout, isAdmin }}>
+    <AuthContext.Provider value={{ user, profile, loading, login, logout, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );

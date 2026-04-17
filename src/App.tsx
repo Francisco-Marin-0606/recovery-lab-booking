@@ -22,14 +22,19 @@ import AdminPanel from "./components/admin/AdminPanel";
 
 import type { TimeSlot } from "./types";
 
-export default function App() {
+interface AppProps {
+  mode?: "public" | "admin";
+}
+
+export default function App({ mode = "public" }: AppProps) {
   const { profile, logout, isAdmin } = useAuth();
+  const isAdminMode = mode === "admin" && isAdmin;
 
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showAdmin, setShowAdmin] = useState(false);
-  const [clientName, setClientName] = useState(profile?.displayName || "");
-  const [clientEmail, setClientEmail] = useState(profile?.email || "");
+  const [clientName, setClientName] = useState("");
+  const [clientEmail, setClientEmail] = useState("");
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [sport, setSport] = useState("");
@@ -116,8 +121,8 @@ export default function App() {
             quantity={quantity}
             onQuantityChange={setQuantity}
             matchedSeller={matchedSeller}
-            isAdmin={isAdmin}
-            profile={profile}
+            isAdmin={isAdminMode}
+            profile={isAdminMode ? profile : null}
             firebaseConnected={firebaseConnected}
           />
 
@@ -138,7 +143,7 @@ export default function App() {
     </div>
   );
 
-  const showAdminLayout = isAdmin && showAdmin;
+  const showAdminLayout = isAdminMode && showAdmin;
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-gray-900 font-sans selection:bg-black selection:text-white flex flex-col">
@@ -170,13 +175,19 @@ export default function App() {
         />
       ) : (
         <>
-          <Navbar
-            profile={profile}
-            isAdmin={isAdmin}
-            showAdmin={showAdmin}
-            onToggleAdmin={() => setShowAdmin(true)}
-            onLogout={logout}
-          />
+          {isAdminMode ? (
+            <Navbar
+              profile={profile}
+              isAdmin={isAdminMode}
+              showAdmin={showAdmin}
+              onToggleAdmin={() => setShowAdmin(true)}
+              onLogout={logout}
+            />
+          ) : (
+            <header className="mx-auto px-6 pt-6 pb-4 flex flex-col items-center max-w-5xl w-full">
+              <img src="/logo.png" alt="Reset Lab" className="h-20 w-auto" />
+            </header>
+          )}
           <main className="mx-auto px-6 pb-20 max-w-5xl w-full">
             {bookingView}
           </main>
