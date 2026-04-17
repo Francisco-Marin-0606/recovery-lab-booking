@@ -39,9 +39,7 @@ export default function TimeSlotList({
                 bookingStatus === "loading" ||
                 !clientName.trim() ||
                 !clientEmail.trim() ||
-                !isValidEmail(clientEmail) ||
-                !sport.trim() ||
-                !reason.trim()
+                !isValidEmail(clientEmail)
               }
               onClick={() => onSlotSelect(slot)}
               className={`

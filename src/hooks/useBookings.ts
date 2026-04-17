@@ -80,7 +80,7 @@ export function useBookings(): UseBookingsReturn {
       try {
         const bookingData: Omit<Booking, "id"> = {
           summary: "Reserva Recovery Lab",
-          description: `Turno agendado por ${clientName.trim()} (${clientEmail.trim()}) - ${quantity} persona${quantity > 1 ? "s" : ""} - Deporte: ${sport.trim()} - Motivo: ${reason.trim()}${referredBy.trim() ? ` - Referido por: ${matchedSeller ? `${matchedSeller.name} (${matchedSeller.code})` : referredBy.trim()}` : ""}`,
+          description: `Turno agendado por ${clientName.trim()} (${clientEmail.trim()}) - ${quantity} persona${quantity > 1 ? "s" : ""}${sport.trim() ? ` - Deporte: ${sport.trim()}` : ""}${reason.trim() ? ` - Motivo: ${reason.trim()}` : ""}${referredBy.trim() ? ` - Referido por: ${matchedSeller ? `${matchedSeller.name} (${matchedSeller.code})` : referredBy.trim()}` : ""}`,
           start: selectedSlot.start.toISOString(),
           end: selectedSlot.end.toISOString(),
           createdAt: new Date().toISOString(),

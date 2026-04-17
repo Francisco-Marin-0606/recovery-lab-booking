@@ -91,7 +91,7 @@ export default function BookingForm({
 
       <div className="mb-4">
         <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">
-          Deporte que practicás
+          Deporte que practicás (opcional)
         </label>
         <div className="relative">
           <Activity className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -107,7 +107,7 @@ export default function BookingForm({
 
       <div className="mb-4">
         <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">
-          Motivo de la consulta
+          Motivo de la consulta (opcional)
         </label>
         <textarea
           value={reason}

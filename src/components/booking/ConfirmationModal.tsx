@@ -70,14 +70,18 @@ export default function ConfirmationModal({
                 <span className="text-gray-500">Correo</span>
                 <span className="font-semibold">{clientEmail}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Deporte</span>
-                <span className="font-semibold">{sport}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Motivo</span>
-                <span className="font-semibold text-right max-w-[200px]">{reason}</span>
-              </div>
+              {sport.trim() && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Deporte</span>
+                  <span className="font-semibold">{sport}</span>
+                </div>
+              )}
+              {reason.trim() && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Motivo</span>
+                  <span className="font-semibold text-right max-w-[200px]">{reason}</span>
+                </div>
+              )}
               {referredBy.trim() && (
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Referido por</span>

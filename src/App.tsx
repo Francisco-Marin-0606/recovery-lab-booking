@@ -53,7 +53,7 @@ export default function App({ mode = "public" }: AppProps) {
   );
 
   const handleSlotSelect = (slot: TimeSlot) => {
-    if (!clientName.trim() || !clientEmail.trim() || !isValidEmail(clientEmail) || !sport.trim() || !reason.trim()) return;
+    if (!clientName.trim() || !clientEmail.trim() || !isValidEmail(clientEmail)) return;
     const remainingSpots = slot.capacity - slot.bookedCount;
     if (quantity > remainingSpots) return;
     setSelectedSlot(slot);
