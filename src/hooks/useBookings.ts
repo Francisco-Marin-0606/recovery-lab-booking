@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { db, ref, push, onValue } from "../firebase";
+import { useDemo } from "../contexts/DemoContext";
 import type { Booking, Seller, TimeSlot } from "../types";
 
 interface UseBookingsReturn {
@@ -23,6 +24,7 @@ interface UseBookingsReturn {
 }
 
 export function useBookings(): UseBookingsReturn {
+  const demo = useDemo();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [firebaseConnected, setFirebaseConnected] = useState(false);
   const [bookingStatus, setBookingStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -93,6 +95,16 @@ export function useBookings(): UseBookingsReturn {
           sellerCode: matchedSeller?.code || "",
         };
 
+        if (demo.enabled) {
+          demo.addBooking({
+            id: `demo-booking-local-${Date.now()}`,
+            ...bookingData,
+          });
+          setBookingStatus("success");
+          setTimeout(() => setBookingStatus("idle"), 3000);
+          return;
+        }
+
         const bookingsRef = ref(db, "bookings");
         await push(bookingsRef, bookingData);
 
@@ -137,8 +149,17 @@ export function useBookings(): UseBookingsReturn {
         setTimeout(() => setBookingStatus("idle"), 3000);
       }
     },
-    []
+    [demo]
   );
 
-  return { bookings, firebaseConnected, bookingStatus, handleConfirmBooking, setBookingStatus };
+  const effectiveBookings = demo.enabled ? demo.bookings : bookings;
+  const effectiveConnected = demo.enabled ? true : firebaseConnected;
+
+  return {
+    bookings: effectiveBookings,
+    firebaseConnected: effectiveConnected,
+    bookingStatus,
+    handleConfirmBooking,
+    setBookingStatus,
+  };
 }

@@ -10,9 +10,11 @@ import {
 } from "date-fns";
 import { db, ref, push, onValue } from "../firebase";
 import { generateSellerCode } from "../utils/validation";
+import { useDemo } from "../contexts/DemoContext";
 import type { Booking, Seller, SellerRankings } from "../types";
 
 export function useSellers(bookings: Booking[]) {
+  const demo = useDemo();
   const [sellers, setSellers] = useState<Seller[]>([]);
   const [newSellerName, setNewSellerName] = useState("");
   const [newSellerEmail, setNewSellerEmail] = useState("");
@@ -37,22 +39,30 @@ export function useSellers(bookings: Booking[]) {
     return () => unsub();
   }, []);
 
+  const effectiveSellers = demo.enabled ? demo.sellers : sellers;
+
   const handleAddSeller = useCallback(async () => {
     if (!newSellerName.trim() || !newSellerEmail.trim() || !newSellerPhone.trim()) return;
-    const code = generateSellerCode(sellers);
-    const sellersRef = ref(db, "sellers");
-    await push(sellersRef, {
+    const code = generateSellerCode(effectiveSellers);
+    const payload = {
       name: newSellerName.trim(),
       email: newSellerEmail.trim(),
       phone: newSellerPhone.trim(),
       code,
       createdAt: new Date().toISOString(),
-    });
+    };
+
+    if (demo.enabled) {
+      demo.addSeller({ id: `demo-seller-local-${Date.now()}`, ...payload });
+    } else {
+      const sellersRef = ref(db, "sellers");
+      await push(sellersRef, payload);
+    }
     setNewSellerName("");
     setNewSellerEmail("");
     setNewSellerPhone("");
     setShowAddSeller(false);
-  }, [newSellerName, newSellerEmail, newSellerPhone, sellers]);
+  }, [newSellerName, newSellerEmail, newSellerPhone, effectiveSellers, demo]);
 
   const handleCopyCode = useCallback((code: string) => {
     navigator.clipboard.writeText(code);
@@ -65,12 +75,12 @@ export function useSellers(bookings: Booking[]) {
       if (!referredBy.trim()) return null;
       const input = referredBy.trim().toLowerCase();
       return (
-        sellers.find(
+        effectiveSellers.find(
           (s) => s.code.toLowerCase() === input || s.name.toLowerCase() === input
         ) || null
       );
     },
-    [sellers]
+    [effectiveSellers]
   );
 
   const sellerRankings: SellerRankings = useMemo(() => {
@@ -82,13 +92,13 @@ export function useSellers(bookings: Booking[]) {
 
     const computeRankings = (filtered: Booking[]) => {
       const counts = new Map<string, number>();
-      sellers.forEach((s) => counts.set(s.code, 0));
+      effectiveSellers.forEach((s) => counts.set(s.code, 0));
       filtered.forEach((b) => {
         const val = b.referredBy?.trim().toLowerCase();
         const matchedCode =
           b.sellerCode ||
           (val
-            ? sellers.find(
+            ? effectiveSellers.find(
                 (s) =>
                   s.code.toLowerCase() === val || s.name.toLowerCase() === val
               )?.code
@@ -97,7 +107,7 @@ export function useSellers(bookings: Booking[]) {
           counts.set(matchedCode, (counts.get(matchedCode) || 0) + (b.quantity || 1));
         }
       });
-      return sellers
+      return effectiveSellers
         .map((s) => ({ ...s, referrals: counts.get(s.code) || 0 }))
         .sort((a, b) => b.referrals - a.referrals);
     };
@@ -115,10 +125,10 @@ export function useSellers(bookings: Booking[]) {
       weekly: computeRankings(weeklyBookings),
       monthly: computeRankings(monthlyBookings),
     };
-  }, [bookings, sellers]);
+  }, [bookings, effectiveSellers]);
 
   return {
-    sellers,
+    sellers: effectiveSellers,
     newSellerName,
     setNewSellerName,
     newSellerEmail,

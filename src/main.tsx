@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { DemoProvider } from "./contexts/DemoContext";
 import App from "./App";
 import LoginPage from "./pages/LoginPage";
 import "./index.css";
@@ -31,11 +32,13 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
-          <Route path="/" element={<App mode="public" />} />
-          <Route path="/admin" element={<AdminRoute />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <DemoProvider>
+          <Routes>
+            <Route path="/" element={<App mode="public" />} />
+            <Route path="/admin" element={<AdminRoute />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </DemoProvider>
       </AuthProvider>
     </BrowserRouter>
   </StrictMode>

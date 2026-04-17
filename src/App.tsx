@@ -2,7 +2,9 @@ import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { motion } from "motion/react";
+import { FlaskConical, X } from "lucide-react";
 import { useAuth } from "./contexts/AuthContext";
+import { useDemo } from "./contexts/DemoContext";
 import { isValidEmail } from "./utils/validation";
 
 import { useCalendarConnection } from "./hooks/useCalendarConnection";
@@ -28,6 +30,7 @@ interface AppProps {
 
 export default function App({ mode = "public" }: AppProps) {
   const { profile, logout, isAdmin } = useAuth();
+  const demo = useDemo();
   const isAdminMode = mode === "admin" && isAdmin;
 
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -145,8 +148,30 @@ export default function App({ mode = "public" }: AppProps) {
 
   const showAdminLayout = isAdminMode && showAdmin;
 
+  const demoBanner = demo.enabled ? (
+    <div className="bg-gradient-to-r from-violet-600 via-indigo-600 to-violet-600 text-white text-xs font-medium shadow-sm">
+      <div className="max-w-6xl mx-auto px-4 py-2 flex items-center gap-3">
+        <FlaskConical className="w-3.5 h-3.5 shrink-0" />
+        <span className="flex-1">
+          <strong className="font-bold">Modo demostración activo.</strong>{" "}
+          Los datos mostrados son ficticios y no se guardan en Firebase.
+        </span>
+        {isAdminMode && (
+          <button
+            onClick={demo.disable}
+            title="Desactivar modo demostración"
+            className="p-1 rounded-full hover:bg-white/15 transition-colors shrink-0"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
+    </div>
+  ) : null;
+
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-gray-900 font-sans selection:bg-black selection:text-white flex flex-col">
+      {demoBanner}
       {showAdminLayout ? (
         <AdminPanel
           profile={profile}
