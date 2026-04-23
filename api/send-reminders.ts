@@ -76,12 +76,12 @@ function formatTime(date: Date): string {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const expectedSecret = process.env.CRON_SECRET;
+  const expectedSecret = process.env.CRON_SECRET?.trim();
   if (expectedSecret) {
     const provided =
       (req.headers["authorization"] as string | undefined) ||
       (req.query.secret as string | undefined);
-    const token = provided?.replace(/^Bearer\s+/i, "");
+    const token = provided?.replace(/^Bearer\s+/i, "").trim();
     if (token !== expectedSecret) {
       return res.status(401).json({ error: "Unauthorized" });
     }
