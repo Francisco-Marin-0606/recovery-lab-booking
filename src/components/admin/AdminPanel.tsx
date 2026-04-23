@@ -2,8 +2,6 @@ import { useState, useRef, type ReactNode } from "react";
 import {
   Calendar as CalendarIcon,
   LayoutDashboard,
-  List,
-  Users,
   Award,
   Settings,
   ArrowLeft,
@@ -11,8 +9,9 @@ import {
   LogOut,
   Shield,
   PanelLeftClose,
+  ClipboardList,
 } from "lucide-react";
-import type { Booking, DashboardData, Seller, SellerRankings } from "../../types";
+import type { Attendee, Booking, DashboardData, Seller, SellerMetrics, SellerRankings } from "../../types";
 
 import DashboardOverview from "./dashboard/DashboardOverview";
 import DashboardDetailToday from "./dashboard/DashboardDetailToday";
@@ -23,11 +22,10 @@ import DashboardDetailSports from "./dashboard/DashboardDetailSports";
 import DashboardDetailHours from "./dashboard/DashboardDetailHours";
 import DashboardDetailReferrals from "./dashboard/DashboardDetailReferrals";
 import WeeklyCalendar from "./WeeklyCalendar";
-import BookingsList from "./BookingsList";
-import PatientsSection from "./PatientsSection";
-import RecurringClients from "./RecurringClients";
 import SellersSection from "./SellersSection";
 import ConfigSection from "./ConfigSection";
+import AttendeesRegistration, { getPendingBookings } from "./AttendeesRegistration";
+import PendingAttendeesAlert from "./PendingAttendeesAlert";
 
 interface AdminPanelProps {
   profile: { displayName?: string; email: string; role: string } | null;
@@ -44,14 +42,31 @@ interface AdminPanelProps {
   onNewSellerEmailChange: (v: string) => void;
   newSellerPhone: string;
   onNewSellerPhoneChange: (v: string) => void;
+  newSellerGoal: number;
+  onNewSellerGoalChange: (v: number) => void;
   showAddSeller: boolean;
   onToggleAddSeller: () => void;
   onAddSeller: () => void;
   onCopyCode: (code: string) => void;
+  onCopyLink: (code: string) => void;
   copiedCode: string | null;
   sellerRankingPeriod: "weekly" | "monthly";
   onRankingPeriodChange: (period: "weekly" | "monthly") => void;
   sellerRankings: SellerRankings;
+  sellerMetrics: Map<string, SellerMetrics>;
+  teamMetrics: {
+    monthTotal: number;
+    totalGoal: number;
+    goalProgressPct: number;
+    activeSellers: number;
+    totalSellers: number;
+    trend7dPct: number;
+    repeatRatePct: number;
+    topSeller: { name: string; code: string; count: number } | null;
+  };
+  onUpdateSeller: (id: string, patch: Partial<Seller>) => void;
+  onDeleteSeller: (id: string) => void;
+  onSaveAttendees: (bookingId: string, attendees: Attendee[]) => Promise<void>;
   bookingContent: ReactNode;
 }
 
@@ -65,14 +80,19 @@ const DASHBOARD_TITLES: Record<string, string> = {
   referrals: "Referidos",
 };
 
-type TabId = "reservar" | "dashboard" | "calendario" | "turnos" | "pacientes" | "vendedores" | "config";
+type TabId =
+  | "reservar"
+  | "dashboard"
+  | "calendario"
+  | "registro"
+  | "vendedores"
+  | "config";
 
 const NAV_ITEMS: { id: TabId; icon: typeof LayoutDashboard; label: string }[] = [
   { id: "reservar", icon: CalendarPlus, label: "Reservar" },
   { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { id: "calendario", icon: CalendarIcon, label: "Calendario" },
-  { id: "turnos", icon: List, label: "Turnos" },
-  { id: "pacientes", icon: Users, label: "Pacientes" },
+  { id: "registro", icon: ClipboardList, label: "Registro" },
   { id: "vendedores", icon: Award, label: "Vendedores" },
   { id: "config", icon: Settings, label: "Config" },
 ];
@@ -92,19 +112,29 @@ export default function AdminPanel({
   onNewSellerEmailChange,
   newSellerPhone,
   onNewSellerPhoneChange,
+  newSellerGoal,
+  onNewSellerGoalChange,
   showAddSeller,
   onToggleAddSeller,
   onAddSeller,
   onCopyCode,
+  onCopyLink,
   copiedCode,
   sellerRankingPeriod,
   onRankingPeriodChange,
   sellerRankings,
+  sellerMetrics,
+  teamMetrics,
+  onUpdateSeller,
+  onDeleteSeller,
+  onSaveAttendees,
   bookingContent,
 }: AdminPanelProps) {
   const [activeTab, setActiveTab] = useState<TabId>("reservar");
   const [dashboardView, setDashboardView] = useState<string | null>(null);
   const panelScrollRef = useRef<HTMLDivElement>(null);
+
+  const pendingAttendeesCount = getPendingBookings(bookings).length;
 
   const handleTabChange = (tab: TabId) => {
     setActiveTab(tab);
@@ -117,8 +147,7 @@ export default function AdminPanel({
     if (activeTab === "dashboard")
       return dashboardView ? (DASHBOARD_TITLES[dashboardView] || "Dashboard") : "Dashboard";
     if (activeTab === "calendario") return "Calendario semanal";
-    if (activeTab === "turnos") return "Todos los turnos";
-    if (activeTab === "pacientes") return "Pacientes";
+    if (activeTab === "registro") return "Registro de asistentes";
     if (activeTab === "vendedores") return "Vendedores";
     if (activeTab === "config") return "Configuración";
     return "";
@@ -140,10 +169,15 @@ export default function AdminPanel({
         {/* Tab icons */}
         {NAV_ITEMS.map((item) => {
           const isActive = activeTab === item.id;
+          const showBadge = item.id === "registro" && pendingAttendeesCount > 0;
           return (
             <button
               key={item.id}
-              title={item.label}
+              title={
+                showBadge
+                  ? `${item.label} — ${pendingAttendeesCount} pendiente${pendingAttendeesCount !== 1 ? "s" : ""}`
+                  : item.label
+              }
               onClick={() => handleTabChange(item.id)}
               className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all relative ${
                 isActive
@@ -154,6 +188,11 @@ export default function AdminPanel({
               <item.icon className="w-[18px] h-[18px]" />
               {isActive && (
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-white rounded-r-full" />
+              )}
+              {showBadge && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-amber-500 text-[9px] font-bold text-white flex items-center justify-center ring-2 ring-gray-900">
+                  {pendingAttendeesCount}
+                </span>
               )}
             </button>
           );
@@ -226,6 +265,13 @@ export default function AdminPanel({
         {/* Tab content */}
         <div className="px-8 py-6 max-w-6xl mx-auto">
           <div className="space-y-6">
+            {activeTab !== "registro" && (
+              <PendingAttendeesAlert
+                bookings={bookings}
+                onGoToRegistration={() => handleTabChange("registro")}
+              />
+            )}
+
             {activeTab === "reservar" && bookingContent}
 
             {activeTab === "dashboard" && (
@@ -244,13 +290,12 @@ export default function AdminPanel({
             )}
 
             {activeTab === "calendario" && <WeeklyCalendar bookings={bookings} />}
-            {activeTab === "turnos" && <BookingsList bookings={bookings} />}
 
-            {activeTab === "pacientes" && (
-              <>
-                <PatientsSection bookings={bookings} />
-                <RecurringClients recurringClients={dashboardData.recurringClients} />
-              </>
+            {activeTab === "registro" && (
+              <AttendeesRegistration
+                bookings={bookings}
+                onSaveAttendees={onSaveAttendees}
+              />
             )}
 
             {activeTab === "vendedores" && (
@@ -263,14 +308,21 @@ export default function AdminPanel({
                 onNewSellerEmailChange={onNewSellerEmailChange}
                 newSellerPhone={newSellerPhone}
                 onNewSellerPhoneChange={onNewSellerPhoneChange}
+                newSellerGoal={newSellerGoal}
+                onNewSellerGoalChange={onNewSellerGoalChange}
                 showAddSeller={showAddSeller}
                 onToggleAddSeller={onToggleAddSeller}
                 onAddSeller={onAddSeller}
                 onCopyCode={onCopyCode}
+                onCopyLink={onCopyLink}
                 copiedCode={copiedCode}
                 sellerRankingPeriod={sellerRankingPeriod}
                 onRankingPeriodChange={onRankingPeriodChange}
                 sellerRankings={sellerRankings}
+                sellerMetrics={sellerMetrics}
+                teamMetrics={teamMetrics}
+                onUpdateSeller={onUpdateSeller}
+                onDeleteSeller={onDeleteSeller}
               />
             )}
 

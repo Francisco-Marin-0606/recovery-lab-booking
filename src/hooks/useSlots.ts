@@ -6,9 +6,16 @@ import {
   setHours,
   setMinutes,
   parseISO,
+  isSameDay,
 } from "date-fns";
-import { MAX_CAPACITY } from "../constants";
+import { MAX_CAPACITY, SCHEDULE } from "../constants";
 import type { Booking, TimeSlot } from "../types";
+
+export type SlotsEmptyReason =
+  | "closed-today"
+  | "all-past"
+  | "fully-booked"
+  | null;
 
 function countBookingsForSlot(
   slotStart: Date,
@@ -27,26 +34,53 @@ function countBookingsForSlot(
 
 export { countBookingsForSlot };
 
-export function useSlots(
+function parseHHMM(value: string): { hour: number; minute: number } {
+  const [h, m] = value.split(":").map(Number);
+  return { hour: h, minute: m };
+}
+
+function getDayWindow(
+  date: Date
+): { dayStart: Date; dayEnd: Date } | null {
+  const entry = SCHEDULE.find((d) => d.weekday === date.getDay());
+  if (!entry || !entry.open || !entry.close) return null;
+  const { hour: oh, minute: om } = parseHHMM(entry.open);
+  const { hour: ch, minute: cm } = parseHHMM(entry.close);
+  const dayStart = setMinutes(setHours(date, oh), om);
+  const dayEnd = setMinutes(setHours(date, ch), cm);
+  return { dayStart, dayEnd };
+}
+
+interface BuildResult {
+  slots: TimeSlot[];
+  emptyReason: SlotsEmptyReason;
+}
+
+function buildSlotsForDate(
   selectedDate: Date,
-  isConnected: boolean,
   bookings: Booking[]
-) {
-  const [slots, setSlots] = useState<TimeSlot[]>([]);
+): BuildResult {
+  const window = getDayWindow(selectedDate);
+  if (!window) {
+    return { slots: [], emptyReason: "closed-today" };
+  }
 
-  const generateSlotsFromFirebase = useCallback(() => {
-    const dayStart = setHours(setMinutes(selectedDate, 0), 8);
-    const dayEnd = setHours(setMinutes(selectedDate, 0), 20);
-    const dateStr = format(selectedDate, "yyyy-MM-dd");
-    const dayBookings = bookings.filter((b) => b.start.startsWith(dateStr));
+  const { dayStart, dayEnd } = window;
+  const dateStr = format(selectedDate, "yyyy-MM-dd");
+  const dayBookings = bookings.filter((b) => b.start.startsWith(dateStr));
+  const now = new Date();
+  const isToday = isSameDay(selectedDate, now);
 
-    const daySlots: TimeSlot[] = [];
-    let current = dayStart;
+  const daySlots: TimeSlot[] = [];
+  let slotsEligibleByTime = 0;
+  let current = dayStart;
 
-    while (isBefore(current, dayEnd)) {
-      const slotEnd = addHours(current, 1);
-      const bookedCount = countBookingsForSlot(current, slotEnd, dayBookings);
+  while (isBefore(current, dayEnd)) {
+    const slotEnd = addHours(current, 1);
+    const bookedCount = countBookingsForSlot(current, slotEnd, dayBookings);
 
+    if (!isBefore(current, now)) {
+      slotsEligibleByTime += 1;
       daySlots.push({
         start: current,
         end: slotEnd,
@@ -54,40 +88,55 @@ export function useSlots(
         bookedCount,
         capacity: MAX_CAPACITY,
       });
-
-      current = slotEnd;
     }
 
-    setSlots(daySlots);
+    current = slotEnd;
+  }
+
+  if (daySlots.length === 0) {
+    return {
+      slots: [],
+      emptyReason: isToday ? "all-past" : "closed-today",
+    };
+  }
+
+  const anyAvailable = daySlots.some((s) => s.available);
+  if (!anyAvailable) {
+    return { slots: daySlots, emptyReason: "fully-booked" };
+  }
+
+  if (isToday && slotsEligibleByTime === 0) {
+    return { slots: [], emptyReason: "all-past" };
+  }
+
+  return { slots: daySlots, emptyReason: null };
+}
+
+export function useSlots(
+  selectedDate: Date,
+  isConnected: boolean,
+  bookings: Booking[]
+) {
+  const [slots, setSlots] = useState<TimeSlot[]>([]);
+  const [emptyReason, setEmptyReason] = useState<SlotsEmptyReason>(null);
+
+  const generateSlotsFromFirebase = useCallback(() => {
+    const { slots: next, emptyReason: reason } = buildSlotsForDate(
+      selectedDate,
+      bookings
+    );
+    setSlots(next);
+    setEmptyReason(reason);
   }, [selectedDate, bookings]);
 
   const fetchAvailability = useCallback(async () => {
-    const start = setHours(setMinutes(selectedDate, 0), 8);
-    const end = setHours(setMinutes(selectedDate, 0), 20);
-
     try {
-      const dateStr = format(selectedDate, "yyyy-MM-dd");
-      const dayBookings = bookings.filter((b) => b.start.startsWith(dateStr));
-
-      const daySlots: TimeSlot[] = [];
-      let current = start;
-
-      while (isBefore(current, end)) {
-        const slotEnd = addHours(current, 1);
-        const bookedCount = countBookingsForSlot(current, slotEnd, dayBookings);
-
-        daySlots.push({
-          start: current,
-          end: slotEnd,
-          available: bookedCount < MAX_CAPACITY,
-          bookedCount,
-          capacity: MAX_CAPACITY,
-        });
-
-        current = slotEnd;
-      }
-
-      setSlots(daySlots);
+      const { slots: next, emptyReason: reason } = buildSlotsForDate(
+        selectedDate,
+        bookings
+      );
+      setSlots(next);
+      setEmptyReason(reason);
     } catch (err) {
       console.error(err);
     }
@@ -101,5 +150,5 @@ export function useSlots(
     }
   }, [selectedDate, isConnected, bookings, fetchAvailability, generateSlotsFromFirebase]);
 
-  return { slots };
+  return { slots, emptyReason };
 }

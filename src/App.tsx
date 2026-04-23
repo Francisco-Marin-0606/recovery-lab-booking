@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { motion } from "motion/react";
@@ -21,6 +22,7 @@ import TimeSlotList from "./components/booking/TimeSlotList";
 import BookingStatusOverlay from "./components/booking/BookingStatusOverlay";
 import ConfirmationModal from "./components/booking/ConfirmationModal";
 import AdminPanel from "./components/admin/AdminPanel";
+import LandingPage from "./pages/LandingPage";
 
 import type { TimeSlot } from "./types";
 
@@ -44,10 +46,28 @@ export default function App({ mode = "public" }: AppProps) {
   const [reason, setReason] = useState("");
   const [referredBy, setReferredBy] = useState("");
 
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    const refParam = searchParams.get("ref");
+    if (refParam && !referredBy) {
+      setReferredBy(refParam);
+      const next = new URLSearchParams(searchParams);
+      next.delete("ref");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, referredBy, setSearchParams]);
+
   const { isConnected, isLoading, handleConnect } = useCalendarConnection();
-  const { bookings, firebaseConnected, bookingStatus, handleConfirmBooking } = useBookings();
+  const {
+    bookings,
+    firebaseConnected,
+    bookingStatus,
+    handleConfirmBooking,
+    handleSaveAttendees,
+  } = useBookings();
   const sellerHook = useSellers(bookings);
-  const { slots } = useSlots(selectedDate, isConnected, bookings);
+  const { slots, emptyReason } = useSlots(selectedDate, isConnected, bookings);
   const dashboardData = useDashboardData(bookings);
 
   const matchedSeller = useMemo(
@@ -137,6 +157,7 @@ export default function App({ mode = "public" }: AppProps) {
             clientEmail={clientEmail}
             sport={sport}
             reason={reason}
+            emptyReason={emptyReason}
             onSlotSelect={handleSlotSelect}
           />
         </div>
@@ -188,35 +209,39 @@ export default function App({ mode = "public" }: AppProps) {
           onNewSellerEmailChange={sellerHook.setNewSellerEmail}
           newSellerPhone={sellerHook.newSellerPhone}
           onNewSellerPhoneChange={sellerHook.setNewSellerPhone}
+          newSellerGoal={sellerHook.newSellerGoal}
+          onNewSellerGoalChange={sellerHook.setNewSellerGoal}
           showAddSeller={sellerHook.showAddSeller}
           onToggleAddSeller={() => sellerHook.setShowAddSeller(!sellerHook.showAddSeller)}
           onAddSeller={sellerHook.handleAddSeller}
           onCopyCode={sellerHook.handleCopyCode}
+          onCopyLink={sellerHook.handleCopyLink}
           copiedCode={sellerHook.copiedCode}
           sellerRankingPeriod={sellerHook.sellerRankingPeriod}
           onRankingPeriodChange={sellerHook.setSellerRankingPeriod}
           sellerRankings={sellerHook.sellerRankings}
+          sellerMetrics={sellerHook.sellerMetrics}
+          teamMetrics={sellerHook.teamMetrics}
+          onUpdateSeller={sellerHook.handleUpdateSeller}
+          onDeleteSeller={sellerHook.handleDeleteSeller}
+          onSaveAttendees={handleSaveAttendees}
           bookingContent={bookingView}
         />
-      ) : (
+      ) : isAdminMode ? (
         <>
-          {isAdminMode ? (
-            <Navbar
-              profile={profile}
-              isAdmin={isAdminMode}
-              showAdmin={showAdmin}
-              onToggleAdmin={() => setShowAdmin(true)}
-              onLogout={logout}
-            />
-          ) : (
-            <header className="mx-auto px-6 pt-6 pb-4 flex flex-col items-center max-w-5xl w-full">
-              <img src="/logo.png" alt="Reset Lab" className="h-20 w-auto" />
-            </header>
-          )}
+          <Navbar
+            profile={profile}
+            isAdmin={isAdminMode}
+            showAdmin={showAdmin}
+            onToggleAdmin={() => setShowAdmin(true)}
+            onLogout={logout}
+          />
           <main className="mx-auto px-6 pb-20 max-w-5xl w-full">
             {bookingView}
           </main>
         </>
+      ) : (
+        <LandingPage>{bookingView}</LandingPage>
       )}
 
       <ConfirmationModal

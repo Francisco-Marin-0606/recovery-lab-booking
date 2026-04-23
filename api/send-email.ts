@@ -12,21 +12,50 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: "Faltan datos requeridos" });
   }
 
+  const gmailUser = process.env.GMAIL_USER || "juanisasti7@gmail.com";
+  const gmailPass = process.env.GMAIL_APP_PASSWORD;
+
+  if (!gmailPass) {
+    console.error("GMAIL_APP_PASSWORD no está configurada");
+    return res.status(500).json({ error: "Servidor de email no configurado" });
+  }
+
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 465,
     secure: true,
     auth: {
-      user: process.env.GMAIL_USER || "juanisasti7@gmail.com",
-      pass: process.env.GMAIL_APP_PASSWORD,
+      user: gmailUser,
+      pass: gmailPass,
     },
   });
 
+  const textBody = [
+    `Hola ${clientName},`,
+    ``,
+    `Tu turno en Recovery Lab fue reservado con éxito.`,
+    ``,
+    `Fecha: ${date}`,
+    `Horario: ${timeStart} - ${timeEnd}`,
+    `Duración: 60 minutos`,
+    ``,
+    `Si necesitás cancelar o reprogramar, contactanos con anticipación.`,
+    ``,
+    `Recovery Lab`,
+  ].join("\n");
+
   try {
-    await transporter.sendMail({
-      from: `"Recovery Lab" <${process.env.GMAIL_USER || "juanisasti7@gmail.com"}>`,
+    const info = await transporter.sendMail({
+      from: `"Recovery Lab" <${gmailUser}>`,
+      sender: gmailUser,
+      replyTo: `"Recovery Lab" <${gmailUser}>`,
       to: clientEmail,
       subject: "Confirmación de tu reserva - Recovery Lab",
+      text: textBody,
+      headers: {
+        "X-Entity-Ref-ID": `recovery-lab-${Date.now()}`,
+        "X-Mailer": "Recovery Lab Booking",
+      },
       html: `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 520px; margin: 0 auto; padding: 32px; background: #f8f9fa; border-radius: 16px;">
           <div style="background: #000; color: #fff; padding: 24px; border-radius: 12px; text-align: center; margin-bottom: 24px;">
@@ -59,9 +88,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       `,
     });
 
-    res.json({ success: true });
+    console.log("Email enviado:", info.messageId, "->", clientEmail);
+    res.json({ success: true, messageId: info.messageId });
   } catch (error) {
     console.error("Error enviando email:", error);
-    res.status(500).json({ error: "Error al enviar el correo de confirmación" });
+    res.status(500).json({
+      error: "Error al enviar el correo de confirmación",
+      detail: error instanceof Error ? error.message : String(error),
+    });
   }
 }

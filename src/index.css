@@ -16,9 +16,19 @@
   --color-dark-accent: #1A1F2E;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background-color: #F7F8FA;
   color: var(--color-text-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 ::selection {

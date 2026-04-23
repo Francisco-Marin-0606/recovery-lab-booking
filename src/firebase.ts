@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getDatabase, ref, push, onValue, set, remove, get } from "firebase/database";
+import { getDatabase, ref, push, onValue, set, remove, get, update } from "firebase/database";
 import {
   getAuth,
   signInWithEmailAndPassword,
@@ -32,6 +32,7 @@ export {
   set,
   remove,
   get,
+  update,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,

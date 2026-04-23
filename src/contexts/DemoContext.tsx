@@ -23,7 +23,10 @@ interface DemoContextValue extends DemoState {
   toggle: () => void;
   regenerate: () => void;
   addBooking: (booking: Booking) => void;
+  updateBooking: (id: string, patch: Partial<Booking>) => void;
   addSeller: (seller: Seller) => void;
+  updateSeller: (id: string, patch: Partial<Seller>) => void;
+  deleteSeller: (id: string) => void;
 }
 
 const DemoContext = createContext<DemoContextValue | null>(null);
@@ -98,8 +101,29 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, bookings: [...prev.bookings, booking] }));
   }, []);
 
+  const updateBooking = useCallback((id: string, patch: Partial<Booking>) => {
+    setState((prev) => ({
+      ...prev,
+      bookings: prev.bookings.map((b) => (b.id === id ? { ...b, ...patch } : b)),
+    }));
+  }, []);
+
   const addSeller = useCallback((seller: Seller) => {
     setState((prev) => ({ ...prev, sellers: [...prev.sellers, seller] }));
+  }, []);
+
+  const updateSeller = useCallback((id: string, patch: Partial<Seller>) => {
+    setState((prev) => ({
+      ...prev,
+      sellers: prev.sellers.map((s) => (s.id === id ? { ...s, ...patch } : s)),
+    }));
+  }, []);
+
+  const deleteSeller = useCallback((id: string) => {
+    setState((prev) => ({
+      ...prev,
+      sellers: prev.sellers.filter((s) => s.id !== id),
+    }));
   }, []);
 
   return (
@@ -111,7 +135,10 @@ export function DemoProvider({ children }: { children: ReactNode }) {
         toggle,
         regenerate,
         addBooking,
+        updateBooking,
         addSeller,
+        updateSeller,
+        deleteSeller,
       }}
     >
       {children}

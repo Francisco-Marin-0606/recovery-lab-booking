@@ -92,6 +92,8 @@ export function generateDemoSellers(count = 6): Seller[] {
       phone: randomPhone(),
       code,
       createdAt: subDays(new Date(), randInt(30, 180)).toISOString(),
+      monthlyGoal: pick([10, 15, 15, 20, 25, 30]),
+      active: true,
     });
   }
   return list;
