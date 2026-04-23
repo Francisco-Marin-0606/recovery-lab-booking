@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { google } from "googleapis";
-import { fetchBooking, updateBooking } from "../_lib/firebase-rest";
-import { getOAuth2Client, getOwnerTokens } from "../_lib/google-auth";
+import { fetchBooking, updateBooking } from "../_lib/firebase-rest.js";
+import { getOAuth2Client, getOwnerTokens } from "../_lib/google-auth.js";
 
 function resolveAppUrl(req: VercelRequest): string {
   if (process.env.APP_URL) return process.env.APP_URL.replace(/\/$/, "");

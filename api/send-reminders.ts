@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import nodemailer from "nodemailer";
-import { fetchAllBookings, updateBooking, type StoredBooking } from "./_lib/firebase-rest";
+import { fetchAllBookings, updateBooking, type StoredBooking } from "./_lib/firebase-rest.js";
 
 const REMINDER_MINUTES_BEFORE = 60;
 const REMINDER_WINDOW_MINUTES = 75;
