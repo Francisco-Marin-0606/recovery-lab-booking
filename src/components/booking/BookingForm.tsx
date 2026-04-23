@@ -61,7 +61,9 @@ export default function BookingForm({
           onChange={(e) => onClientNameChange(e.target.value)}
           placeholder="Ingresá tu nombre para reservar"
           readOnly={!isAdmin && !!profile?.displayName}
-          className={`w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-1 focus:ring-black outline-none transition-all text-sm ${
+          autoComplete="name"
+          autoCapitalize="words"
+          className={`w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:border-black focus:ring-1 focus:ring-black outline-none transition-all text-base sm:text-sm ${
             !isAdmin && profile?.displayName ? "bg-gray-50 text-gray-600" : ""
           }`}
         />
@@ -79,7 +81,11 @@ export default function BookingForm({
             onChange={(e) => onClientEmailChange(e.target.value)}
             placeholder="tu@email.com"
             readOnly={!isAdmin && !!profile?.email}
-            className={`w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-1 focus:ring-black outline-none transition-all text-sm ${
+            autoComplete="email"
+            autoCapitalize="none"
+            spellCheck={false}
+            inputMode="email"
+            className={`w-full pl-10 pr-4 py-3.5 rounded-xl border border-gray-200 focus:border-black focus:ring-1 focus:ring-black outline-none transition-all text-base sm:text-sm ${
               !isAdmin && profile?.email ? "bg-gray-50 text-gray-600" : ""
             }`}
           />
@@ -100,7 +106,8 @@ export default function BookingForm({
             value={sport}
             onChange={(e) => onSportChange(e.target.value)}
             placeholder="Ej: Fútbol, Running, Tenis..."
-            className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-1 focus:ring-black outline-none transition-all text-sm"
+            autoCapitalize="words"
+            className="w-full pl-10 pr-4 py-3.5 rounded-xl border border-gray-200 focus:border-black focus:ring-1 focus:ring-black outline-none transition-all text-base sm:text-sm"
           />
         </div>
       </div>
@@ -114,7 +121,7 @@ export default function BookingForm({
           onChange={(e) => onReasonChange(e.target.value)}
           placeholder="¿Por qué estás tomando este turno?"
           rows={2}
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-1 focus:ring-black outline-none transition-all text-sm resize-none"
+          className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:border-black focus:ring-1 focus:ring-black outline-none transition-all text-base sm:text-sm resize-none"
         />
       </div>
 
@@ -128,8 +135,9 @@ export default function BookingForm({
             type="text"
             value={referredBy}
             onChange={(e) => onReferredByChange(e.target.value)}
-            placeholder="Nombre del vendedor o código de referido"
-            className={`w-full pl-10 pr-10 py-3 rounded-xl border outline-none transition-all text-sm ${
+            placeholder="Nombre o código de referido"
+            autoCapitalize="words"
+            className={`w-full pl-10 pr-10 py-3.5 rounded-xl border outline-none transition-all text-base sm:text-sm ${
               matchedSeller
                 ? "border-emerald-400 bg-emerald-50/50 focus:ring-1 focus:ring-emerald-400"
                 : "border-gray-200 focus:border-black focus:ring-1 focus:ring-black"
@@ -155,28 +163,30 @@ export default function BookingForm({
         <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">
           Cantidad de personas
         </label>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             type="button"
             onClick={() => onQuantityChange(Math.max(1, quantity - 1))}
-            className="w-10 h-10 rounded-xl border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-30"
+            className="w-11 h-11 rounded-xl border border-gray-200 flex items-center justify-center hover:bg-gray-50 active:bg-gray-100 transition-colors disabled:opacity-30"
             disabled={quantity <= 1}
+            aria-label="Disminuir cantidad"
           >
             <Minus className="w-4 h-4" />
           </button>
-          <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-xl min-w-[80px] justify-center">
+          <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 rounded-xl min-w-[80px] justify-center">
             <Users className="w-4 h-4 text-gray-500" />
             <span className="font-bold text-lg">{quantity}</span>
           </div>
           <button
             type="button"
             onClick={() => onQuantityChange(Math.min(MAX_CAPACITY, quantity + 1))}
-            className="w-10 h-10 rounded-xl border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-30"
+            className="w-11 h-11 rounded-xl border border-gray-200 flex items-center justify-center hover:bg-gray-50 active:bg-gray-100 transition-colors disabled:opacity-30"
             disabled={quantity >= MAX_CAPACITY}
+            aria-label="Aumentar cantidad"
           >
             <Plus className="w-4 h-4" />
           </button>
-          <span className="text-xs text-gray-400 ml-1">máx. {MAX_CAPACITY}</span>
+          <span className="text-xs text-gray-400 ml-auto sm:ml-1">máx. {MAX_CAPACITY}</span>
         </div>
       </div>
 

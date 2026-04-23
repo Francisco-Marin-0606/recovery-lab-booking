@@ -10,6 +10,7 @@ import {
 } from "date-fns";
 import { MAX_CAPACITY, SCHEDULE } from "../constants";
 import type { Booking, TimeSlot } from "../types";
+import { localDateKey } from "../utils/date";
 
 export type SlotsEmptyReason =
   | "closed-today"
@@ -67,7 +68,7 @@ function buildSlotsForDate(
 
   const { dayStart, dayEnd } = window;
   const dateStr = format(selectedDate, "yyyy-MM-dd");
-  const dayBookings = bookings.filter((b) => b.start.startsWith(dateStr));
+  const dayBookings = bookings.filter((b) => localDateKey(b.start) === dateStr);
   const now = new Date();
   const isToday = isSameDay(selectedDate, now);
 

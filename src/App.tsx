@@ -107,7 +107,7 @@ export default function App({ mode = "public" }: AppProps) {
   if (isLoading) return <LoadingScreen />;
 
   const bookingView = (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8">
       <CalendarPanel
         currentMonth={currentMonth}
         selectedDate={selectedDate}
@@ -118,14 +118,14 @@ export default function App({ mode = "public" }: AppProps) {
       <motion.div
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
-        className="lg:col-span-5 flex flex-col gap-6"
+        className="lg:col-span-5 flex flex-col gap-4 sm:gap-6"
       >
-        <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 flex-1">
-          <div className="mb-6">
+        <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-sm border border-gray-100 flex-1">
+          <div className="mb-5 sm:mb-6">
             <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
               Disponibilidad para el
             </span>
-            <h3 className="text-xl font-bold capitalize">
+            <h3 className="text-lg sm:text-xl font-bold capitalize">
               {format(selectedDate, "EEEE d 'de' MMMM", { locale: es })}
             </h3>
           </div>
@@ -236,7 +236,7 @@ export default function App({ mode = "public" }: AppProps) {
             onToggleAdmin={() => setShowAdmin(true)}
             onLogout={logout}
           />
-          <main className="mx-auto px-6 pb-20 max-w-5xl w-full">
+          <main className="mx-auto px-4 sm:px-6 pb-16 sm:pb-20 max-w-5xl w-full">
             {bookingView}
           </main>
         </>

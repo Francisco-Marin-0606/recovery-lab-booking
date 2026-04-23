@@ -109,7 +109,7 @@ export default function TimeSlotList({
   }
 
   return (
-    <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+    <div className="space-y-2.5 sm:space-y-3 max-h-[360px] sm:max-h-[400px] overflow-y-auto pr-1 sm:pr-2 custom-scrollbar">
       {slots.length > 0 ? (
         slots.map((slot, idx) => {
           const remaining = slot.capacity - slot.bookedCount;
@@ -126,7 +126,7 @@ export default function TimeSlotList({
               }
               onClick={() => onSlotSelect(slot)}
               className={`
-                w-full p-4 rounded-2xl border transition-all flex items-center justify-between group
+                w-full p-3.5 sm:p-4 rounded-2xl border transition-all flex items-center justify-between group active:scale-[0.98]
                 ${
                   canBook
                     ? "border-gray-100 hover:border-black hover:shadow-md bg-white"
@@ -134,27 +134,27 @@ export default function TimeSlotList({
                 }
               `}
             >
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                 <div
                   className={`
-                    w-10 h-10 rounded-xl flex items-center justify-center transition-colors
+                    w-10 h-10 rounded-xl flex items-center justify-center transition-colors shrink-0
                     ${canBook ? "bg-gray-100 group-hover:bg-black group-hover:text-white" : "bg-gray-200"}
                   `}
                 >
                   <Clock className="w-5 h-5" />
                 </div>
-                <div className="text-left">
-                  <p className="font-bold">{format(slot.start, "HH:mm")}</p>
-                  <p className="text-xs text-gray-500">
+                <div className="text-left min-w-0">
+                  <p className="font-bold text-base">{format(slot.start, "HH:mm")}</p>
+                  <p className="text-xs text-gray-500 truncate">
                     {remaining === 0
                       ? "Completo"
                       : `${remaining} lugar${remaining !== 1 ? "es" : ""} disponible${remaining !== 1 ? "s" : ""}`}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 {remaining > 0 && remaining < MAX_CAPACITY && (
-                  <div className="flex gap-0.5">
+                  <div className="hidden sm:flex gap-0.5">
                     {Array.from({ length: MAX_CAPACITY }).map((_, i) => (
                       <div
                         key={i}
@@ -166,7 +166,7 @@ export default function TimeSlotList({
                   </div>
                 )}
                 {canBook && (
-                  <span className="text-xs font-bold uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-xs font-bold uppercase tracking-tighter sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-black text-white sm:bg-transparent sm:text-current px-2.5 py-1 sm:px-0 sm:py-0 rounded-full sm:rounded-none">
                     Reservar
                   </span>
                 )}

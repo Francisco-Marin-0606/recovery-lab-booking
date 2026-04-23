@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-surface: #FFFFFF;
   --color-surface-alt: #F4F6F8;
@@ -16,13 +18,63 @@
   --color-dark-accent: #1A1F2E;
 }
 
+:root {
+  --app-bg: #F7F8FA;
+  --app-bg-alt: #F8F9FA;
+  --app-surface: #FFFFFF;
+  --app-surface-soft: #F9FAFB;
+  --app-surface-softer: #F3F4F6;
+  --app-surface-softest: #E5E7EB;
+  --app-text-strong: #111827;
+  --app-text: #1F2937;
+  --app-text-soft: #374151;
+  --app-text-softer: #4B5563;
+  --app-text-muted: #6B7280;
+  --app-text-faint: #9CA3AF;
+  --app-text-faintest: #D1D5DB;
+  --app-border: #E5E7EB;
+  --app-border-soft: #F3F4F6;
+  --app-accent: #000000;
+  --app-accent-foreground: #FFFFFF;
+  --app-accent-soft: #1F2937;
+}
+
+html.dark {
+  color-scheme: dark;
+  --app-bg: #0B0F17;
+  --app-bg-alt: #0F131D;
+  --app-surface: #161B26;
+  --app-surface-soft: #1C2230;
+  --app-surface-softer: #242B3B;
+  --app-surface-softest: #2E3649;
+  --app-text-strong: #F3F5F9;
+  --app-text: #E5E8EF;
+  --app-text-soft: #D1D5DE;
+  --app-text-softer: #B8BDCC;
+  --app-text-muted: #8A91A3;
+  --app-text-faint: #6B7180;
+  --app-text-faintest: #4A5065;
+  --app-border: #262C3B;
+  --app-border-soft: #1F2430;
+  --app-accent: #FFFFFF;
+  --app-accent-foreground: #0B0F17;
+  --app-accent-soft: #E5E8EF;
+}
+
 html {
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
-  background-color: #F7F8FA;
-  color: var(--color-text-primary);
+  background-color: var(--app-bg);
+  color: var(--app-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -34,4 +86,148 @@ body {
 ::selection {
   background-color: var(--color-brand-green);
   color: white;
+}
+
+/* Evita el zoom automático de iOS al enfocar inputs (requiere font-size >= 16px) */
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Soporte para safe-area (notch / home indicator) */
+.safe-px {
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+}
+.safe-pb {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.safe-pt {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Mejor experiencia táctil */
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ===========================================================
+   MODO OSCURO - Override de utilidades Tailwind más usadas.
+   Se usa el selector html.dark .clase para ganar en especificidad
+   a las utilidades base sin tener que modificar cada componente.
+   =========================================================== */
+
+html.dark body {
+  background-color: var(--app-bg);
+}
+
+/* Fondos neutros */
+html.dark .bg-white { background-color: var(--app-surface) !important; }
+html.dark .bg-gray-50 { background-color: var(--app-surface-soft) !important; }
+html.dark .bg-gray-100 { background-color: var(--app-surface-softer) !important; }
+html.dark .bg-gray-200 { background-color: var(--app-surface-softest) !important; }
+html.dark .bg-gray-900 { background-color: #0D1119 !important; }
+html.dark .bg-black { background-color: var(--app-accent) !important; color: var(--app-accent-foreground) !important; }
+
+/* Fondos translúcidos usados en navbars, modales, etc. */
+html.dark .bg-white\/90 { background-color: rgba(22, 27, 38, 0.9) !important; }
+html.dark .bg-white\/95 { background-color: rgba(22, 27, 38, 0.95) !important; }
+html.dark .bg-white\/98 { background-color: rgba(22, 27, 38, 0.98) !important; }
+html.dark .bg-white\/80 { background-color: rgba(22, 27, 38, 0.8) !important; }
+html.dark .bg-white\/70 { background-color: rgba(22, 27, 38, 0.7) !important; }
+html.dark .bg-white\/50 { background-color: rgba(22, 27, 38, 0.5) !important; }
+html.dark .bg-black\/20 { background-color: rgba(0, 0, 0, 0.55) !important; }
+html.dark .bg-black\/40 { background-color: rgba(0, 0, 0, 0.6) !important; }
+html.dark .bg-black\/50 { background-color: rgba(0, 0, 0, 0.65) !important; }
+
+/* Fondos fijos tipo bg-[#F8F9FA] / bg-[#F7F8FA] / bg-[#F9FAFB] usados en layouts */
+html.dark .bg-\[\#F8F9FA\],
+html.dark .bg-\[\#F7F8FA\],
+html.dark .bg-\[\#F9FAFB\],
+html.dark .bg-\[\#FAFAFA\],
+html.dark .bg-\[\#FAFBFC\] {
+  background-color: var(--app-bg) !important;
+}
+
+/* Texto */
+html.dark .text-black { color: var(--app-text-strong) !important; }
+html.dark .text-gray-900 { color: var(--app-text-strong) !important; }
+html.dark .text-gray-800 { color: var(--app-text) !important; }
+html.dark .text-gray-700 { color: var(--app-text-soft) !important; }
+html.dark .text-gray-600 { color: var(--app-text-softer) !important; }
+html.dark .text-gray-500 { color: var(--app-text-muted) !important; }
+html.dark .text-gray-400 { color: var(--app-text-faint) !important; }
+html.dark .text-gray-300 { color: var(--app-text-faintest) !important; }
+
+/* Bordes */
+html.dark .border-gray-50 { border-color: var(--app-border-soft) !important; }
+html.dark .border-gray-100 { border-color: var(--app-border) !important; }
+html.dark .border-gray-200 { border-color: var(--app-border) !important; }
+html.dark .border-gray-300 { border-color: var(--app-border) !important; }
+html.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]) { border-color: var(--app-border) !important; }
+html.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: var(--app-border) !important; }
+
+/* Hovers */
+html.dark .hover\:bg-white:hover { background-color: var(--app-surface-soft) !important; }
+html.dark .hover\:bg-gray-50:hover { background-color: var(--app-surface-soft) !important; }
+html.dark .hover\:bg-gray-100:hover { background-color: var(--app-surface-softer) !important; }
+html.dark .hover\:bg-gray-200:hover { background-color: var(--app-surface-softest) !important; }
+html.dark .hover\:bg-gray-800:hover { background-color: var(--app-accent-soft) !important; }
+html.dark .hover\:text-black:hover { color: var(--app-text-strong) !important; }
+html.dark .hover\:text-gray-900:hover { color: var(--app-text-strong) !important; }
+html.dark .active\:bg-gray-200:active { background-color: var(--app-surface-softest) !important; }
+
+/* Placeholders */
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: var(--app-text-faint);
+  opacity: 1;
+}
+
+/* Inputs y selects en dark */
+html.dark input,
+html.dark select,
+html.dark textarea {
+  color-scheme: dark;
+}
+
+/* Tonos claros de color que se ven mal en oscuro (chips, badges) */
+html.dark .bg-amber-50 { background-color: rgba(245, 158, 11, 0.12) !important; }
+html.dark .bg-amber-100 { background-color: rgba(245, 158, 11, 0.18) !important; }
+html.dark .text-amber-700 { color: #FBBF24 !important; }
+html.dark .text-amber-600 { color: #FBBF24 !important; }
+html.dark .bg-blue-50 { background-color: rgba(59, 130, 246, 0.12) !important; }
+html.dark .bg-blue-100 { background-color: rgba(59, 130, 246, 0.18) !important; }
+html.dark .text-blue-700 { color: #60A5FA !important; }
+html.dark .text-blue-600 { color: #60A5FA !important; }
+html.dark .bg-red-50 { background-color: rgba(239, 68, 68, 0.14) !important; }
+html.dark .bg-red-100 { background-color: rgba(239, 68, 68, 0.22) !important; }
+html.dark .text-red-700 { color: #F87171 !important; }
+html.dark .text-red-600 { color: #F87171 !important; }
+html.dark .hover\:bg-red-50:hover { background-color: rgba(239, 68, 68, 0.18) !important; }
+html.dark .hover\:text-red-600:hover { color: #F87171 !important; }
+html.dark .bg-green-50 { background-color: rgba(34, 197, 94, 0.14) !important; }
+html.dark .bg-green-100 { background-color: rgba(34, 197, 94, 0.22) !important; }
+html.dark .text-green-700 { color: #4ADE80 !important; }
+html.dark .text-green-600 { color: #4ADE80 !important; }
+html.dark .bg-violet-50 { background-color: rgba(139, 92, 246, 0.14) !important; }
+html.dark .bg-indigo-50 { background-color: rgba(99, 102, 241, 0.14) !important; }
+
+/* Sombras más suaves en oscuro */
+html.dark .shadow-sm { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) !important; }
+html.dark .shadow { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.35) !important; }
+html.dark .shadow-md { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.45), 0 2px 4px rgba(0, 0, 0, 0.35) !important; }
+html.dark .shadow-lg { box-shadow: 0 10px 15px rgba(0, 0, 0, 0.5), 0 4px 6px rgba(0, 0, 0, 0.35) !important; }
+html.dark .shadow-xl { box-shadow: 0 20px 25px rgba(0, 0, 0, 0.55), 0 8px 10px rgba(0, 0, 0, 0.4) !important; }
+
+/* Scrollbar custom para dark */
+html.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #2E3649;
+}
+html.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #3A4358;
 }

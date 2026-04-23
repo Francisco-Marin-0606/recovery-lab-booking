@@ -26,6 +26,7 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { HOURS } from "../../constants";
 import type { Booking } from "../../types";
+import { localDateKey } from "../../utils/date";
 
 const HOUR_HEIGHT = 56; // px por hora
 const DAY_START_HOUR = HOURS[0]; // 8
@@ -164,7 +165,7 @@ export default function WeeklyCalendar({ bookings }: WeeklyCalendarProps) {
   const eventsByDay = useMemo(() => {
     return weekDays.map((day) => {
       const dayStr = format(day, "yyyy-MM-dd");
-      const dayEvents = bookings.filter((b) => b.start.startsWith(dayStr));
+      const dayEvents = bookings.filter((b) => localDateKey(b.start) === dayStr);
       return layoutDayEvents(dayEvents);
     });
   }, [bookings, weekDays]);

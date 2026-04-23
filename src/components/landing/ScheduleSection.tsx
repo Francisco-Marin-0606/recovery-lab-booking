@@ -29,10 +29,10 @@ export default function ScheduleSection() {
   return (
     <section
       id="horarios"
-      className="relative py-24 sm:py-28 bg-white scroll-mt-20"
+      className="relative py-16 sm:py-28 bg-white scroll-mt-16 sm:scroll-mt-20"
     >
-      <div className="mx-auto max-w-6xl px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+      <div className="mx-auto max-w-6xl px-5 sm:px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 items-start">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -44,10 +44,10 @@ export default function ScheduleSection() {
               <Clock className="w-4 h-4 text-blue-500" />
               Horarios
             </span>
-            <h2 className="mt-4 text-3xl sm:text-5xl font-bold tracking-tight leading-tight">
+            <h2 className="mt-4 text-2xl sm:text-5xl font-bold tracking-tight leading-tight">
               Abierto cuando lo necesitás.
             </h2>
-            <p className="mt-6 text-gray-600 text-base sm:text-lg leading-relaxed">
+            <p className="mt-5 sm:mt-6 text-gray-600 text-sm sm:text-lg leading-relaxed">
               Atendemos todos los días: de lunes a viernes de 7 a 22 hs y los
               fines de semana de 10 a 18 hs. Reservá con anticipación para
               asegurar tu plaza en el horario que mejor se adapte a tu rutina.
@@ -85,7 +85,7 @@ export default function ScheduleSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="lg:col-span-7 bg-[#F8F9FA] rounded-3xl p-6 sm:p-8 border border-gray-100"
+            className="lg:col-span-7 bg-[#F8F9FA] rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-gray-100"
           >
             <div className="flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-gray-400 mb-5">
               <Calendar className="w-4 h-4" />

@@ -1,4 +1,5 @@
-import { Settings, LogOut, Shield, User as UserIcon, PanelLeftOpen, PanelLeftClose } from "lucide-react";
+import { LogOut, Shield, User as UserIcon, PanelLeftOpen, PanelLeftClose } from "lucide-react";
+import ThemeToggle from "./ThemeToggle";
 
 interface NavbarProps {
   profile: { displayName?: string; email: string; role: string } | null;
@@ -38,6 +39,7 @@ export default function Navbar({
             {profile?.role}
           </span>
         </div>
+        <ThemeToggle variant="ghost" />
         {isAdmin && (
           <button
             onClick={onToggleAdmin}

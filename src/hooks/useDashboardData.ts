@@ -11,6 +11,7 @@ import {
 import { es } from "date-fns/locale";
 import { DAILY_GOAL, MONTHLY_GOAL, WORKING_DAYS_PER_MONTH } from "../constants";
 import type { Booking, DashboardData } from "../types";
+import { localDateKey } from "../utils/date";
 
 export function useDashboardData(bookings: Booking[]): DashboardData {
   return useMemo(() => {
@@ -25,7 +26,7 @@ export function useDashboardData(bookings: Booking[]): DashboardData {
     });
 
     const monthlyPeople = monthBookings.reduce((s, b) => s + (b.quantity || 1), 0);
-    const todayBookings = bookings.filter((b) => b.start.startsWith(todayStr));
+    const todayBookings = bookings.filter((b) => localDateKey(b.start) === todayStr);
     const todayPeople = todayBookings.reduce((s, b) => s + (b.quantity || 1), 0);
 
     const dayOfMonth = now.getDate();
@@ -67,7 +68,7 @@ export function useDashboardData(bookings: Booking[]): DashboardData {
     });
     daysToShow.forEach((day) => {
       const ds = format(day, "yyyy-MM-dd");
-      const dayB = bookings.filter((b) => b.start.startsWith(ds));
+      const dayB = bookings.filter((b) => localDateKey(b.start) === ds);
       const dayP = dayB.reduce((s, b) => s + (b.quantity || 1), 0);
       dailyBreakdown.push({ date: ds, label: format(day, "d", { locale: es }), people: dayP });
     });
